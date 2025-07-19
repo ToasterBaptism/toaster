@@ -26,10 +26,24 @@ object ControllerInputState {
     private val _rightTrigger = MutableStateFlow(0f)
     val rightTrigger: StateFlow<Float> = _rightTrigger.asStateFlow()
     
+    // Selected controller device
+    private val _selectedDeviceId = MutableStateFlow<Int?>(null)
+    val selectedDeviceId: StateFlow<Int?> = _selectedDeviceId.asStateFlow()
+    
+    fun setSelectedDevice(deviceId: Int?) {
+        _selectedDeviceId.value = deviceId
+    }
+    
     /**
      * Update button state from KeyEvent
      */
     fun updateButtonState(event: KeyEvent) {
+        // Only process events from selected device (or any device if none selected)
+        val selectedDevice = _selectedDeviceId.value
+        if (selectedDevice != null && event.deviceId != selectedDevice) {
+            return
+        }
+        
         val buttonCode = getButtonCode(event.keyCode)
         val currentButtons = _pressedButtons.value.toMutableSet()
         
@@ -49,6 +63,12 @@ object ControllerInputState {
      * Update analog stick and trigger state from MotionEvent
      */
     fun updateMotionState(event: MotionEvent) {
+        // Only process events from selected device (or any device if none selected)
+        val selectedDevice = _selectedDeviceId.value
+        if (selectedDevice != null && event.deviceId != selectedDevice) {
+            return
+        }
+        
         // Left stick (X and Y axes)
         val leftX = event.getAxisValue(MotionEvent.AXIS_X)
         val leftY = event.getAxisValue(MotionEvent.AXIS_Y)

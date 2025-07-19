@@ -20,6 +20,7 @@ import com.nexus.controllerhub.ui.component.ControllerVisualization
 import com.nexus.controllerhub.ui.viewmodel.ConfigurationViewModel
 import com.nexus.controllerhub.ui.viewmodel.ConfigurationViewModelFactory
 import com.nexus.controllerhub.util.ControllerInputState
+import com.nexus.controllerhub.util.ControllerDetector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +44,30 @@ fun ConfigurationScreen(
     val rightStickPosition by ControllerInputState.rightStickPosition.collectAsState()
     val leftTrigger by ControllerInputState.leftTrigger.collectAsState()
     val rightTrigger by ControllerInputState.rightTrigger.collectAsState()
+    val selectedDeviceId by ControllerInputState.selectedDeviceId.collectAsState()
+    
+    // Controller detection for determining controller type
+    val controllerDetector = remember { ControllerDetector(context) }
+    val connectedControllers by controllerDetector.connectedControllers.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        controllerDetector.startDetection()
+    }
+    
+    DisposableEffect(Unit) {
+        onDispose {
+            controllerDetector.stopDetection()
+        }
+    }
+    
+    // Determine controller type based on selected device or first connected controller
+    val controllerType = if (selectedDeviceId != null) {
+        connectedControllers.find { it.deviceId == selectedDeviceId }?.controllerType
+            ?: ControllerDetector.ControllerType.GENERIC
+    } else {
+        connectedControllers.firstOrNull()?.controllerType
+            ?: ControllerDetector.ControllerType.GENERIC
+    }
     
     Column(
         modifier = Modifier.fillMaxSize()
@@ -90,7 +115,8 @@ fun ConfigurationScreen(
                     leftStickPosition = leftStickPosition,
                     rightStickPosition = rightStickPosition,
                     leftTrigger = leftTrigger,
-                    rightTrigger = rightTrigger
+                    rightTrigger = rightTrigger,
+                    controllerType = controllerType
                 )
                 1 -> CalibrationTab(
                     profile = profile!!,
@@ -120,7 +146,8 @@ private fun ButtonMappingTab(
     leftStickPosition: Pair<Float, Float>,
     rightStickPosition: Pair<Float, Float>,
     leftTrigger: Float,
-    rightTrigger: Float
+    rightTrigger: Float,
+    controllerType: ControllerDetector.ControllerType
 ) {
     Column(
         modifier = Modifier
@@ -146,7 +173,8 @@ private fun ButtonMappingTab(
             leftStickPosition = leftStickPosition,
             rightStickPosition = rightStickPosition,
             leftTrigger = leftTrigger,
-            rightTrigger = rightTrigger
+            rightTrigger = rightTrigger,
+            controllerType = controllerType
         )
         
         Spacer(modifier = Modifier.height(16.dp))

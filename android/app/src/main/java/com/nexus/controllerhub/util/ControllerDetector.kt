@@ -22,8 +22,24 @@ class ControllerDetector(private val context: Context) : InputManager.InputDevic
         val vendorId: Int,
         val productId: Int,
         val isGamepad: Boolean,
-        val hasVibrator: Boolean
+        val hasVibrator: Boolean,
+        val controllerType: ControllerType,
+        val connectionType: ConnectionType
     )
+    
+    enum class ControllerType {
+        XBOX,
+        PLAYSTATION,
+        GAMESIR,
+        GENERIC,
+        UNKNOWN
+    }
+    
+    enum class ConnectionType {
+        USB,
+        BLUETOOTH,
+        UNKNOWN
+    }
     
     init {
         inputManager.registerInputDeviceListener(this, null)
@@ -64,7 +80,9 @@ class ControllerDetector(private val context: Context) : InputManager.InputDevic
                         vendorId = device.vendorId,
                         productId = device.productId,
                         isGamepad = device.sources and InputDevice.SOURCE_GAMEPAD != 0,
-                        hasVibrator = device.vibrator?.hasVibrator() == true
+                        hasVibrator = device.vibrator?.hasVibrator() == true,
+                        controllerType = detectControllerType(device),
+                        connectionType = detectConnectionType(device)
                     )
                 )
             }
@@ -77,6 +95,62 @@ class ControllerDetector(private val context: Context) : InputManager.InputDevic
         val sources = device.sources
         return (sources and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
                (sources and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
+    }
+    
+    private fun detectControllerType(device: InputDevice): ControllerType {
+        val name = device.name.lowercase()
+        val vendorId = device.vendorId
+        val productId = device.productId
+        
+        return when {
+            // GameSir controllers
+            name.contains("gamesir") || 
+            vendorId == 0x3537 || // GameSir vendor ID
+            name.contains("g3s") ||
+            name.contains("g4s") ||
+            name.contains("g7") ||
+            name.contains("t1s") ||
+            name.contains("t4") -> ControllerType.GAMESIR
+            
+            // Xbox controllers
+            name.contains("xbox") ||
+            name.contains("microsoft") ||
+            vendorId == 0x045e || // Microsoft vendor ID
+            (vendorId == 0x045e && productId in listOf(0x028e, 0x028f, 0x02d1, 0x02dd, 0x02e3, 0x02ea, 0x0719)) -> ControllerType.XBOX
+            
+            // PlayStation controllers
+            name.contains("playstation") ||
+            name.contains("dualshock") ||
+            name.contains("dualsense") ||
+            name.contains("ps3") ||
+            name.contains("ps4") ||
+            name.contains("ps5") ||
+            vendorId == 0x054c -> ControllerType.PLAYSTATION // Sony vendor ID
+            
+            // Generic gamepad patterns
+            name.contains("gamepad") ||
+            name.contains("controller") ||
+            name.contains("joystick") -> ControllerType.GENERIC
+            
+            else -> ControllerType.UNKNOWN
+        }
+    }
+    
+    private fun detectConnectionType(device: InputDevice): ConnectionType {
+        val name = device.name.lowercase()
+        val descriptor = device.descriptor.lowercase()
+        
+        return when {
+            name.contains("bluetooth") ||
+            descriptor.contains("bluetooth") ||
+            name.contains("wireless") -> ConnectionType.BLUETOOTH
+            
+            name.contains("usb") ||
+            descriptor.contains("usb") ||
+            name.contains("wired") -> ConnectionType.USB
+            
+            else -> ConnectionType.UNKNOWN
+        }
     }
     
     fun getControllerCapabilities(deviceId: Int): ControllerCapabilities? {

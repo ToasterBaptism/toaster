@@ -28,7 +28,8 @@ fun DashboardScreen(
     onNavigateToProfiles: () -> Unit,
     onNavigateToConfiguration: (Long) -> Unit,
     onNavigateToMacros: () -> Unit,
-    onNavigateToTroubleshooting: () -> Unit = {}
+    onNavigateToTroubleshooting: () -> Unit = {},
+    onNavigateToDeviceSelection: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val database = ControllerDatabase.getDatabase(context)
@@ -258,6 +259,15 @@ fun DashboardScreen(
                         onClick = { onNavigateToConfiguration(activeProfile!!.id) }
                     )
                 }
+            }
+            
+            item {
+                QuickActionCard(
+                    title = "Device Selection",
+                    description = "Select specific controller device to use",
+                    icon = Icons.Default.Gamepad,
+                    onClick = onNavigateToDeviceSelection
+                )
             }
             
             item {

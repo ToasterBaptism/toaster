@@ -85,8 +85,8 @@ class ControllerAccessibilityService : AccessibilityService() {
         // Update visual feedback state
         ControllerInputState.updateButtonState(event)
         
-        // Record macro if recording is active
-        if (isRecordingMacro) {
+        // Record macro if recording is active (only from selected device)
+        if (isRecordingMacro && shouldProcessEvent(event)) {
             recordKeyEvent(event)
         }
         
@@ -126,8 +126,8 @@ class ControllerAccessibilityService : AccessibilityService() {
         // Update visual feedback state
         ControllerInputState.updateMotionState(event)
         
-        // Record macro if recording is active
-        if (isRecordingMacro) {
+        // Record macro if recording is active (only from selected device)
+        if (isRecordingMacro && shouldProcessEvent(event)) {
             recordMotionEvent(event)
         }
         
@@ -149,6 +149,16 @@ class ControllerAccessibilityService : AccessibilityService() {
     
     private fun isControllerInput(event: MotionEvent): Boolean {
         return InputDiagnostics.shouldProcessMotionEvent(event)
+    }
+    
+    private fun shouldProcessEvent(event: KeyEvent): Boolean {
+        val selectedDevice = ControllerInputState.selectedDeviceId.value
+        return selectedDevice == null || event.deviceId == selectedDevice
+    }
+    
+    private fun shouldProcessEvent(event: MotionEvent): Boolean {
+        val selectedDevice = ControllerInputState.selectedDeviceId.value
+        return selectedDevice == null || event.deviceId == selectedDevice
     }
     
     private fun getButtonCode(keyCode: Int): String {

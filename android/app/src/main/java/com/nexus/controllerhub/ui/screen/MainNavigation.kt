@@ -34,7 +34,8 @@ fun MainNavigation(
                     navController.navigate("configuration/$profileId")
                 },
                 onNavigateToMacros = { navController.navigate("macros") },
-                onNavigateToTroubleshooting = { navController.navigate("troubleshooting") }
+                onNavigateToTroubleshooting = { navController.navigate("troubleshooting") },
+                onNavigateToDeviceSelection = { navController.navigate("device_selection") }
             )
         }
         
@@ -74,6 +75,12 @@ fun MainNavigation(
         
         composable("troubleshooting") {
             TroubleshootingScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable("device_selection") {
+            DeviceSelectionScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

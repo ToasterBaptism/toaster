@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nexus.controllerhub.data.model.ControllerLayout
 import com.nexus.controllerhub.data.model.ControllerProfile
+import com.nexus.controllerhub.util.ControllerDetector
 import com.nexus.controllerhub.ui.theme.*
 
 @Composable
@@ -34,7 +35,8 @@ fun ControllerVisualization(
     leftStickPosition: Pair<Float, Float> = Pair(0f, 0f),
     rightStickPosition: Pair<Float, Float> = Pair(0f, 0f),
     leftTrigger: Float = 0f,
-    rightTrigger: Float = 0f
+    rightTrigger: Float = 0f,
+    controllerType: ControllerDetector.ControllerType = ControllerDetector.ControllerType.GENERIC
 ) {
     Box(
         modifier = modifier
@@ -42,15 +44,44 @@ fun ControllerVisualization(
             .height(400.dp)
             .padding(16.dp)
     ) {
-        XboxControllerLayout(
-            profile = profile,
-            onButtonClick = onButtonClick,
-            pressedButtons = pressedButtons,
-            leftStickPosition = leftStickPosition,
-            rightStickPosition = rightStickPosition,
-            leftTrigger = leftTrigger,
-            rightTrigger = rightTrigger
-        )
+        when (controllerType) {
+            ControllerDetector.ControllerType.XBOX -> XboxControllerLayout(
+                profile = profile,
+                onButtonClick = onButtonClick,
+                pressedButtons = pressedButtons,
+                leftStickPosition = leftStickPosition,
+                rightStickPosition = rightStickPosition,
+                leftTrigger = leftTrigger,
+                rightTrigger = rightTrigger
+            )
+            ControllerDetector.ControllerType.PLAYSTATION -> PlayStationControllerLayout(
+                profile = profile,
+                onButtonClick = onButtonClick,
+                pressedButtons = pressedButtons,
+                leftStickPosition = leftStickPosition,
+                rightStickPosition = rightStickPosition,
+                leftTrigger = leftTrigger,
+                rightTrigger = rightTrigger
+            )
+            ControllerDetector.ControllerType.GAMESIR -> GameSirControllerLayout(
+                profile = profile,
+                onButtonClick = onButtonClick,
+                pressedButtons = pressedButtons,
+                leftStickPosition = leftStickPosition,
+                rightStickPosition = rightStickPosition,
+                leftTrigger = leftTrigger,
+                rightTrigger = rightTrigger
+            )
+            else -> GenericControllerLayout(
+                profile = profile,
+                onButtonClick = onButtonClick,
+                pressedButtons = pressedButtons,
+                leftStickPosition = leftStickPosition,
+                rightStickPosition = rightStickPosition,
+                leftTrigger = leftTrigger,
+                rightTrigger = rightTrigger
+            )
+        }
     }
 }
 
@@ -410,6 +441,419 @@ private fun CenterButton(
             fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
             color = if (isPressed) Color.White else Color.Black
+        )
+    }
+}
+
+@Composable
+private fun PlayStationControllerLayout(
+    profile: ControllerProfile,
+    onButtonClick: (String) -> Unit,
+    pressedButtons: Set<String>,
+    leftStickPosition: Pair<Float, Float>,
+    rightStickPosition: Pair<Float, Float>,
+    leftTrigger: Float,
+    rightTrigger: Float
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Controller body background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Color.Black,
+                    RoundedCornerShape(24.dp)
+                )
+        )
+        
+        // Left analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 60.dp, y = 200.dp)
+                .size(80.dp),
+            position = leftStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBL"),
+            onClick = { onButtonClick("BUTTON_THUMBL") }
+        )
+        
+        // Right analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 260.dp, y = 200.dp)
+                .size(80.dp),
+            position = rightStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBR"),
+            onClick = { onButtonClick("BUTTON_THUMBR") }
+        )
+        
+        // Face buttons (Cross, Circle, Square, Triangle)
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 120.dp),
+            label = "×",
+            isPressed = pressedButtons.contains("BUTTON_A"),
+            onClick = { onButtonClick("BUTTON_A") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 330.dp, y = 90.dp),
+            label = "○",
+            isPressed = pressedButtons.contains("BUTTON_B"),
+            onClick = { onButtonClick("BUTTON_B") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 270.dp, y = 90.dp),
+            label = "□",
+            isPressed = pressedButtons.contains("BUTTON_X"),
+            onClick = { onButtonClick("BUTTON_X") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 60.dp),
+            label = "△",
+            isPressed = pressedButtons.contains("BUTTON_Y"),
+            onClick = { onButtonClick("BUTTON_Y") }
+        )
+        
+        // D-Pad
+        DPad(
+            modifier = Modifier.offset(x = 40.dp, y = 80.dp),
+            pressedButtons = pressedButtons,
+            onButtonClick = onButtonClick
+        )
+        
+        // Shoulder buttons
+        ShoulderButton(
+            modifier = Modifier.offset(x = 40.dp, y = 20.dp),
+            label = "L1",
+            isPressed = pressedButtons.contains("BUTTON_L1"),
+            onClick = { onButtonClick("BUTTON_L1") }
+        )
+        ShoulderButton(
+            modifier = Modifier.offset(x = 300.dp, y = 20.dp),
+            label = "R1",
+            isPressed = pressedButtons.contains("BUTTON_R1"),
+            onClick = { onButtonClick("BUTTON_R1") }
+        )
+        
+        // Triggers with pressure indicators
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 20.dp, y = 10.dp),
+            label = "L2",
+            value = leftTrigger,
+            isPressed = pressedButtons.contains("BUTTON_L2"),
+            onClick = { onButtonClick("BUTTON_L2") }
+        )
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 320.dp, y = 10.dp),
+            label = "R2",
+            value = rightTrigger,
+            isPressed = pressedButtons.contains("BUTTON_R2"),
+            onClick = { onButtonClick("BUTTON_R2") }
+        )
+        
+        // Center buttons
+        ControllerButton(
+            modifier = Modifier.offset(x = 140.dp, y = 100.dp),
+            label = "SHARE",
+            isPressed = pressedButtons.contains("BUTTON_SELECT"),
+            onClick = { onButtonClick("BUTTON_SELECT") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 220.dp, y = 100.dp),
+            label = "OPTIONS",
+            isPressed = pressedButtons.contains("BUTTON_START"),
+            onClick = { onButtonClick("BUTTON_START") }
+        )
+    }
+}
+
+@Composable
+private fun GameSirControllerLayout(
+    profile: ControllerProfile,
+    onButtonClick: (String) -> Unit,
+    pressedButtons: Set<String>,
+    leftStickPosition: Pair<Float, Float>,
+    rightStickPosition: Pair<Float, Float>,
+    leftTrigger: Float,
+    rightTrigger: Float
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Controller body background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Color(0xFF2E3440), // GameSir-like dark blue-gray
+                    RoundedCornerShape(20.dp)
+                )
+        )
+        
+        // Left analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 60.dp, y = 180.dp)
+                .size(80.dp),
+            position = leftStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBL"),
+            onClick = { onButtonClick("BUTTON_THUMBL") }
+        )
+        
+        // Right analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 260.dp, y = 180.dp)
+                .size(80.dp),
+            position = rightStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBR"),
+            onClick = { onButtonClick("BUTTON_THUMBR") }
+        )
+        
+        // Face buttons (A, B, X, Y)
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 120.dp),
+            label = "A",
+            isPressed = pressedButtons.contains("BUTTON_A"),
+            onClick = { onButtonClick("BUTTON_A") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 330.dp, y = 90.dp),
+            label = "B",
+            isPressed = pressedButtons.contains("BUTTON_B"),
+            onClick = { onButtonClick("BUTTON_B") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 270.dp, y = 90.dp),
+            label = "X",
+            isPressed = pressedButtons.contains("BUTTON_X"),
+            onClick = { onButtonClick("BUTTON_X") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 60.dp),
+            label = "Y",
+            isPressed = pressedButtons.contains("BUTTON_Y"),
+            onClick = { onButtonClick("BUTTON_Y") }
+        )
+        
+        // D-Pad
+        DPad(
+            modifier = Modifier.offset(x = 40.dp, y = 80.dp),
+            pressedButtons = pressedButtons,
+            onButtonClick = onButtonClick
+        )
+        
+        // Shoulder buttons
+        ShoulderButton(
+            modifier = Modifier.offset(x = 40.dp, y = 20.dp),
+            label = "L1",
+            isPressed = pressedButtons.contains("BUTTON_L1"),
+            onClick = { onButtonClick("BUTTON_L1") }
+        )
+        ShoulderButton(
+            modifier = Modifier.offset(x = 300.dp, y = 20.dp),
+            label = "R1",
+            isPressed = pressedButtons.contains("BUTTON_R1"),
+            onClick = { onButtonClick("BUTTON_R1") }
+        )
+        
+        // Triggers with pressure indicators
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 20.dp, y = 10.dp),
+            label = "L2",
+            value = leftTrigger,
+            isPressed = pressedButtons.contains("BUTTON_L2"),
+            onClick = { onButtonClick("BUTTON_L2") }
+        )
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 320.dp, y = 10.dp),
+            label = "R2",
+            value = rightTrigger,
+            isPressed = pressedButtons.contains("BUTTON_R2"),
+            onClick = { onButtonClick("BUTTON_R2") }
+        )
+        
+        // Center buttons
+        ControllerButton(
+            modifier = Modifier.offset(x = 140.dp, y = 100.dp),
+            label = "SELECT",
+            isPressed = pressedButtons.contains("BUTTON_SELECT"),
+            onClick = { onButtonClick("BUTTON_SELECT") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 220.dp, y = 100.dp),
+            label = "START",
+            isPressed = pressedButtons.contains("BUTTON_START"),
+            onClick = { onButtonClick("BUTTON_START") }
+        )
+        
+        // GameSir specific buttons (if available)
+        ControllerButton(
+            modifier = Modifier.offset(x = 180.dp, y = 80.dp),
+            label = "HOME",
+            isPressed = pressedButtons.contains("BUTTON_MODE"),
+            onClick = { onButtonClick("BUTTON_MODE") }
+        )
+    }
+}
+
+@Composable
+private fun GenericControllerLayout(
+    profile: ControllerProfile,
+    onButtonClick: (String) -> Unit,
+    pressedButtons: Set<String>,
+    leftStickPosition: Pair<Float, Float>,
+    rightStickPosition: Pair<Float, Float>,
+    leftTrigger: Float,
+    rightTrigger: Float
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Controller body background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Color.Gray,
+                    RoundedCornerShape(16.dp)
+                )
+        )
+        
+        // Left analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 60.dp, y = 180.dp)
+                .size(80.dp),
+            position = leftStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBL"),
+            onClick = { onButtonClick("BUTTON_THUMBL") }
+        )
+        
+        // Right analog stick
+        AnalogStick(
+            modifier = Modifier
+                .offset(x = 260.dp, y = 180.dp)
+                .size(80.dp),
+            position = rightStickPosition,
+            isPressed = pressedButtons.contains("BUTTON_THUMBR"),
+            onClick = { onButtonClick("BUTTON_THUMBR") }
+        )
+        
+        // Face buttons (generic layout)
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 120.dp),
+            label = "1",
+            isPressed = pressedButtons.contains("BUTTON_A"),
+            onClick = { onButtonClick("BUTTON_A") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 330.dp, y = 90.dp),
+            label = "2",
+            isPressed = pressedButtons.contains("BUTTON_B"),
+            onClick = { onButtonClick("BUTTON_B") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 270.dp, y = 90.dp),
+            label = "3",
+            isPressed = pressedButtons.contains("BUTTON_X"),
+            onClick = { onButtonClick("BUTTON_X") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 300.dp, y = 60.dp),
+            label = "4",
+            isPressed = pressedButtons.contains("BUTTON_Y"),
+            onClick = { onButtonClick("BUTTON_Y") }
+        )
+        
+        // D-Pad
+        DPad(
+            modifier = Modifier.offset(x = 40.dp, y = 80.dp),
+            pressedButtons = pressedButtons,
+            onButtonClick = onButtonClick
+        )
+        
+        // Shoulder buttons
+        ShoulderButton(
+            modifier = Modifier.offset(x = 40.dp, y = 20.dp),
+            label = "L1",
+            isPressed = pressedButtons.contains("BUTTON_L1"),
+            onClick = { onButtonClick("BUTTON_L1") }
+        )
+        ShoulderButton(
+            modifier = Modifier.offset(x = 300.dp, y = 20.dp),
+            label = "R1",
+            isPressed = pressedButtons.contains("BUTTON_R1"),
+            onClick = { onButtonClick("BUTTON_R1") }
+        )
+        
+        // Triggers with pressure indicators
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 20.dp, y = 10.dp),
+            label = "L2",
+            value = leftTrigger,
+            isPressed = pressedButtons.contains("BUTTON_L2"),
+            onClick = { onButtonClick("BUTTON_L2") }
+        )
+        TriggerIndicator(
+            modifier = Modifier.offset(x = 320.dp, y = 10.dp),
+            label = "R2",
+            value = rightTrigger,
+            isPressed = pressedButtons.contains("BUTTON_R2"),
+            onClick = { onButtonClick("BUTTON_R2") }
+        )
+        
+        // Center buttons
+        ControllerButton(
+            modifier = Modifier.offset(x = 140.dp, y = 100.dp),
+            label = "SEL",
+            isPressed = pressedButtons.contains("BUTTON_SELECT"),
+            onClick = { onButtonClick("BUTTON_SELECT") }
+        )
+        ControllerButton(
+            modifier = Modifier.offset(x = 220.dp, y = 100.dp),
+            label = "START",
+            isPressed = pressedButtons.contains("BUTTON_START"),
+            onClick = { onButtonClick("BUTTON_START") }
+        )
+    }
+}
+
+@Composable
+private fun TriggerIndicator(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: Float,
+    isPressed: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier.clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Trigger pressure bar
+        Box(
+            modifier = Modifier
+                .width(20.dp)
+                .height(60.dp)
+                .background(
+                    Color.LightGray,
+                    RoundedCornerShape(10.dp)
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(value)
+                    .background(
+                        if (isPressed) Color.Green else Color.Blue,
+                        RoundedCornerShape(10.dp)
+                    )
+                    .align(Alignment.BottomCenter)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isPressed) Color.Green else Color.Black
         )
     }
 }

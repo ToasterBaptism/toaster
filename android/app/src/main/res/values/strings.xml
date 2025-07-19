@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nexus Controller Hub</string>
+    
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_description">Nexus Controller Hub requires accessibility access to intercept and remap controller inputs globally across all applications. This service runs locally on your device and does not send any data externally.</string>
+    
+    <!-- Onboarding -->
+    <string name="onboarding_title">Welcome to Nexus Controller Hub</string>
+    <string name="onboarding_subtitle">Your offline-first controller customization toolkit</string>
+    <string name="onboarding_accessibility_title">Enable Accessibility Service</string>
+    <string name="onboarding_accessibility_description">To remap controller inputs globally, we need accessibility permissions. This allows the app to intercept and modify controller signals before they reach games and apps.</string>
+    <string name="onboarding_accessibility_button">Open Settings</string>
+    <string name="onboarding_complete">Setup Complete!</string>
+    <string name="onboarding_skip">Skip for now</string>
+    
+    <!-- Main Dashboard -->
+    <string name="dashboard_title">Controller Hub</string>
+    <string name="dashboard_no_controller">No controller detected</string>
+    <string name="dashboard_controller_connected">Controller connected: %1$s</string>
+    <string name="dashboard_active_profile">Active Profile: %1$s</string>
+    <string name="dashboard_no_active_profile">No active profile</string>
+    
+    <!-- Profile Management -->
+    <string name="profiles_title">Profiles</string>
+    <string name="profiles_create">Create Profile</string>
+    <string name="profiles_import">Import Profile</string>
+    <string name="profiles_export">Export Profile</string>
+    <string name="profiles_delete">Delete Profile</string>
+    <string name="profiles_rename">Rename Profile</string>
+    <string name="profiles_activate">Activate</string>
+    <string name="profiles_deactivate">Deactivate</string>
+    <string name="profiles_edit">Edit Profile</string>
+    
+    <!-- Configuration Editor -->
+    <string name="config_title">Configure Controller</string>
+    <string name="config_button_mapping">Button Mapping</string>
+    <string name="config_analog_calibration">Analog Calibration</string>
+    <string name="config_macro_assignment">Macro Assignment</string>
+    <string name="config_test_mode">Test Mode</string>
+    <string name="config_save">Save Configuration</string>
+    
+    <!-- Button Remapping -->
+    <string name="remap_tap_to_assign">Tap a button to remap it</string>
+    <string name="remap_press_new_button">Press the new button to assign</string>
+    <string name="remap_assignment_complete">Button remapped successfully</string>
+    <string name="remap_clear_mapping">Clear mapping</string>
+    
+    <!-- Calibration -->
+    <string name="calibration_deadzone_inner">Inner Dead Zone</string>
+    <string name="calibration_deadzone_outer">Outer Dead Zone</string>
+    <string name="calibration_sensitivity">Sensitivity</string>
+    <string name="calibration_trigger_actuation">Trigger Actuation Point</string>
+    <string name="calibration_reset">Reset to Default</string>
+    
+    <!-- Macros -->
+    <string name="macro_title">Macros</string>
+    <string name="macro_record">Record Macro</string>
+    <string name="macro_stop_recording">Stop Recording</string>
+    <string name="macro_edit">Edit Macro</string>
+    <string name="macro_assign">Assign to Button</string>
+    <string name="macro_test">Test Macro</string>
+    <string name="macro_delete">Delete Macro</string>
+    <string name="macro_recording_active">Recording macro...</string>
+    
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="done">Done</string>
+    
+    <!-- Error Messages -->
+    <string name="error_accessibility_not_enabled">Accessibility service is not enabled. Some features may not work properly.</string>
+    <string name="error_no_controller">No controller detected. Please connect a controller.</string>
+    <string name="error_profile_save_failed">Failed to save profile</string>
+    <string name="error_profile_load_failed">Failed to load profile</string>
+    <string name="error_macro_record_failed">Failed to record macro</string>
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_permission_denied">Permission denied</string>
+</resources>

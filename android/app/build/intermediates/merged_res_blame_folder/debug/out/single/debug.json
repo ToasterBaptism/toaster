@@ -1,0 +1,38 @@
+[
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/xml_backup_rules.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/xml_file_paths.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.nexus.controllerhub.app-merged_res-61:/xml_accessibility_service_config.xml.flat",
+        "source": "com.nexus.controllerhub.app-main-63:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/xml_accessibility_service_config.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/drawable_ic_launcher.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/xml_data_extraction_rules.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-merged_res-61:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/root/.gradle/daemon/8.4/com.nexus.controllerhub.app-main-63:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]

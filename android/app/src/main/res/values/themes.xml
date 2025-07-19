@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.NexusControllerHub" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#6750A4</item>
+        <item name="colorPrimaryDark">#4F378B</item>
+        <item name="colorAccent">#6750A4</item>
+        <item name="android:colorBackground">#FFFBFE</item>
+        <item name="android:statusBarColor">#6750A4</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

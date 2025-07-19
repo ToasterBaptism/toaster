@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="#6650a4"
+        android:pathData="M54,54m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+    
+    <!-- Controller body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,45 L78,45 Q82,45 82,49 L82,59 Q82,63 78,63 L30,63 Q26,63 26,59 L26,49 Q26,45 30,45 Z" />
+    
+    <!-- Left analog stick -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M36,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M36,54m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+    
+    <!-- Right analog stick -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M72,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M72,54m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+    
+    <!-- D-pad -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M48,38 L60,38 L60,42 L56,42 L56,46 L60,46 L60,50 L48,50 L48,46 L52,46 L52,42 L48,42 Z" />
+    
+    <!-- Action buttons -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M66,40m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M72,40m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M69,35m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M69,45m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+</vector>

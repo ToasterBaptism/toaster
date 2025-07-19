@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Controller Hub - APK Downloads</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            padding: 40px;
+        }
+        .apk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .apk-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .apk-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .apk-item h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.4em;
+        }
+        .apk-item p {
+            margin: 10px 0;
+            color: #666;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f5f8b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(52, 152, 219, 0.3);
+        }
+        .features {
+            background: #ecf0f1;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        .features h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .feature-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #e74c3c;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .status-new {
+            background: #2ecc71;
+            color: white;
+        }
+        .status-fixed {
+            background: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Nexus Controller Hub</h1>
+            <p>High-Performance Android Controller Customization Tool</p>
+        </div>
+        
+        <div class="content">
+            <div class="apk-grid">
+                <div class="apk-item">
+                    <h3>🎮 NexusControllerHub-ControllerVisualization.apk <span class="status-badge status-new">LATEST</span></h3>
+                    <p><strong>Latest Version with Controller Visualization & Macro Recording</strong></p>
+                    <p>✅ Fixed accessibility service to preserve touch input<br>
+                       ✅ Enhanced controller input detection<br>
+                       ✅ Added comprehensive input diagnostics<br>
+                       ✅ Improved input filtering and passthrough<br>
+                       🆕 Real-time Xbox controller visualization<br>
+                       🆕 Live button press feedback<br>
+                       🆕 Analog stick position tracking<br>
+                       🆕 Trigger value indicators<br>
+                       🆕 Enhanced macro recording with debugging</p>
+                    <a href="NexusControllerHub-ControllerVisualization.apk" download class="download-btn">Download Latest APK</a>
+                </div>
+                
+                <div class="apk-item">
+                    <h3>🔧 NexusControllerHub-Fixed.apk <span class="status-badge status-fixed">STABLE</span></h3>
+                    <p><strong>Previous Version with Touch Input Fixes</strong></p>
+                    <p>✅ Fixed accessibility service to preserve touch input<br>
+                       ✅ Enhanced controller input detection<br>
+                       ✅ Added comprehensive input diagnostics<br>
+                       ✅ Improved input filtering and passthrough</p>
+                    <a href="NexusControllerHub-Fixed.apk" download class="download-btn">Download Stable APK</a>
+                </div>
+            </div>
+            
+            <div class="features">
+                <h2>🚀 Latest Updates</h2>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <strong>Controller Visualization</strong><br>
+                        Real-time Xbox controller layout with visual feedback when buttons are pressed
+                    </div>
+                    <div class="feature-item">
+                        <strong>Live Input Tracking</strong><br>
+                        See analog stick positions and trigger values update in real-time
+                    </div>
+                    <div class="feature-item">
+                        <strong>Enhanced Macro Recording</strong><br>
+                        Improved macro recording system with comprehensive debugging and logging
+                    </div>
+                    <div class="feature-item">
+                        <strong>Input State Management</strong><br>
+                        Centralized system for tracking all controller inputs across the app
+                    </div>
+                    <div class="feature-item">
+                        <strong>Touch Input Preservation</strong><br>
+                        Fixed accessibility service to not interfere with normal touch interactions
+                    </div>
+                    <div class="feature-item">
+                        <strong>Input Diagnostics</strong><br>
+                        Built-in troubleshooting tools to help identify controller connection issues
+                    </div>
+                </div>
+            </div>
+            
+            <div class="features">
+                <h2>📋 Testing Instructions</h2>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <strong>1. Install & Setup</strong><br>
+                        Install the APK and enable the accessibility service when prompted
+                    </div>
+                    <div class="feature-item">
+                        <strong>2. Connect Controller</strong><br>
+                        Connect your Xbox controller via Bluetooth or USB
+                    </div>
+                    <div class="feature-item">
+                        <strong>3. Test Visualization</strong><br>
+                        Go to Configuration screen and press controller buttons to see real-time feedback
+                    </div>
+                    <div class="feature-item">
+                        <strong>4. Test Macro Recording</strong><br>
+                        Go to Macros screen, start recording, and press controller buttons to test capture
+                    </div>
+                    <div class="feature-item">
+                        <strong>5. Check Diagnostics</strong><br>
+                        Use the troubleshooting screen to verify controller detection and input sources
+                    </div>
+                    <div class="feature-item">
+                        <strong>6. Verify Touch Input</strong><br>
+                        Ensure normal touch interactions still work properly throughout the system
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

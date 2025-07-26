@@ -6,9 +6,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.nexus.controllerhub.controller.ControllerManager
+
+
 
 @Composable
 fun MainNavigation(
+    controllerManager: ControllerManager,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
@@ -35,7 +39,8 @@ fun MainNavigation(
                 },
                 onNavigateToMacros = { navController.navigate("macros") },
                 onNavigateToTroubleshooting = { navController.navigate("troubleshooting") },
-                onNavigateToDeviceSelection = { navController.navigate("device_selection") }
+                onNavigateToDeviceSelection = { navController.navigate("device_selection") },
+                onNavigateToLiveTest = { navController.navigate("live_test") }
             )
         }
         
@@ -81,6 +86,14 @@ fun MainNavigation(
         
         composable("device_selection") {
             DeviceSelectionScreen(
+                controllerManager = controllerManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable("live_test") {
+            RealLiveTestScreen(
+                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

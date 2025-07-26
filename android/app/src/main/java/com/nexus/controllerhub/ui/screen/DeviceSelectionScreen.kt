@@ -1,6 +1,8 @@
 package com.nexus.controllerhub.ui.screen
 
+import com.nexus.controllerhub.controller.ControllerManager
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,147 +10,103 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material.icons.filled.Usb
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.nexus.controllerhub.util.ControllerDetector
-import com.nexus.controllerhub.util.ControllerInputState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceSelectionScreen(
+    controllerManager: ControllerManager,
     onNavigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
-    val controllerDetector = remember { ControllerDetector(context) }
-    val connectedControllers by controllerDetector.connectedControllers.collectAsState()
-    val selectedDeviceId by ControllerInputState.selectedDeviceId.collectAsState()
-    
-    LaunchedEffect(Unit) {
-        controllerDetector.startDetection()
-    }
-    
-    DisposableEffect(Unit) {
-        onDispose {
-            controllerDetector.stopDetection()
-        }
-    }
+    val connectedControllers by controllerManager.controllers.collectAsState()
+    val activeController by controllerManager.activeController.collectAsState()
     
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Controller Device") },
+                title = { Text("🎮 Select Controller") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* Refresh is automatic */ }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 }
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(16.dp)
         ) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+            // Header info
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Device Selection",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Select a specific controller device to use with the app. If no device is selected, all connected controllers will be processed.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        )
-                    }
+                    Text(
+                        text = "📋 Controller Selection",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Select which controller to use for input capture and configuration. The selected controller will be used for all testing and remapping.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
             
-            item {
-                // Option to use all devices
-                DeviceCard(
-                    deviceName = "All Connected Controllers",
-                    deviceType = "Use any connected controller",
-                    controllerType = ControllerDetector.ControllerType.GENERIC,
-                    connectionType = ControllerDetector.ConnectionType.UNKNOWN,
-                    isSelected = selectedDeviceId == null,
-                    onClick = {
-                        ControllerInputState.setSelectedDevice(null)
-                    }
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
             
             if (connectedControllers.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                Icons.Default.Gamepad,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "No Controllers Detected",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Connect a controller via Bluetooth or USB to see it here.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
+                // No controllers found
+                NoControllersCard()
             } else {
-                items(connectedControllers) { controller ->
-                    DeviceCard(
-                        deviceName = controller.name,
-                        deviceType = "Device ID: ${controller.deviceId}",
-                        controllerType = controller.controllerType,
-                        connectionType = controller.connectionType,
-                        isSelected = selectedDeviceId == controller.deviceId,
-                        onClick = {
-                            ControllerInputState.setSelectedDevice(controller.deviceId)
-                        }
-                    )
+                // Controllers list
+                Text(
+                    text = "Available Controllers (${connectedControllers.size})",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(connectedControllers) { controller ->
+                        ControllerSelectionCard(
+                            controller = controller,
+                            isSelected = activeController?.deviceId == controller.deviceId,
+                            onSelect = { controllerManager.selectController(controller) }
+                        )
+                    }
                 }
             }
         }
@@ -156,140 +114,198 @@ fun DeviceSelectionScreen(
 }
 
 @Composable
-private fun DeviceCard(
-    deviceName: String,
-    deviceType: String,
-    controllerType: ControllerDetector.ControllerType,
-    connectionType: ControllerDetector.ConnectionType,
+private fun NoControllersCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "❌ No Controllers Detected",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "Please connect a controller to continue:",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Column {
+                Text(
+                    text = "• Connect via USB cable",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Text(
+                    text = "• Pair via Bluetooth",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Text(
+                    text = "• Enable developer options if needed",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "Controllers will appear automatically when connected.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ControllerSelectionCard(
+    controller: ControllerManager.Controller,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onSelect: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable { onSelect() },
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) 
                 MaterialTheme.colorScheme.primaryContainer 
             else 
                 MaterialTheme.colorScheme.surface
         ),
-        border = if (isSelected) 
-            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) 
-        else null
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 8.dp else 2.dp
+        )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Controller type icon
+            // Selection indicator
             Icon(
-                imageVector = when (connectionType) {
-                    ControllerDetector.ConnectionType.BLUETOOTH -> Icons.Default.Bluetooth
-                    ControllerDetector.ConnectionType.USB -> Icons.Default.Usb
-                    else -> Icons.Default.Gamepad
-                },
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = if (isSelected) 
-                    MaterialTheme.colorScheme.primary 
-                else 
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = if (isSelected) "Selected" else "Not selected",
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
             )
             
             Spacer(modifier = Modifier.width(16.dp))
             
+            // Controller info
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = deviceName,
+                    text = controller.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.onSurface
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                 )
                 
-                Text(
-                    text = deviceType,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) 
-                    else 
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+                Spacer(modifier = Modifier.height(4.dp))
                 
-                // Controller type and connection type badges
                 Row(
-                    modifier = Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    InfoChip("ID: ${controller.deviceId}")
+                    InfoChip(controller.type.name)
+                    InfoChip("Connected")
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Badge(
-                        text = controllerType.name,
-                        color = getControllerTypeColor(controllerType)
-                    )
-                    
-                    if (connectionType != ControllerDetector.ConnectionType.UNKNOWN) {
-                        Badge(
-                            text = connectionType.name,
-                            color = getConnectionTypeColor(connectionType)
-                        )
-                    }
+                    DetailChip("Vendor: 0x${controller.vendorId.toString(16).uppercase()}")
+                    DetailChip("Product: 0x${controller.productId.toString(16).uppercase()}")
                 }
-            }
-            
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Gamepad,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FeatureChip("${controller.supportedAxes.size} Axes", controller.supportedAxes.isNotEmpty())
+                    FeatureChip("${controller.supportedButtons.size} Buttons", controller.supportedButtons.isNotEmpty())
+                    FeatureChip("Vibration", controller.hasVibrator)
+                }
+                
+                if (isSelected) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "✅ This controller is currently selected for input capture",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Badge(
-    text: String,
-    color: Color
-) {
-    Box(
-        modifier = Modifier
-            .background(
-                color.copy(alpha = 0.2f),
-                RoundedCornerShape(12.dp)
-            )
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+private fun InfoChip(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Text(
             text = text,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium,
-            color = color
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
         )
     }
 }
 
-private fun getControllerTypeColor(type: ControllerDetector.ControllerType): Color {
-    return when (type) {
-        ControllerDetector.ControllerType.XBOX -> Color(0xFF107C10) // Xbox green
-        ControllerDetector.ControllerType.PLAYSTATION -> Color(0xFF0070D1) // PlayStation blue
-        ControllerDetector.ControllerType.GAMESIR -> Color(0xFFFF6B35) // GameSir orange
-        ControllerDetector.ControllerType.GENERIC -> Color(0xFF6B73FF) // Generic purple
-        ControllerDetector.ControllerType.UNKNOWN -> Color.Gray
+@Composable
+private fun DetailChip(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(6.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
-private fun getConnectionTypeColor(type: ControllerDetector.ConnectionType): Color {
-    return when (type) {
-        ControllerDetector.ConnectionType.BLUETOOTH -> Color(0xFF0082FC) // Bluetooth blue
-        ControllerDetector.ConnectionType.USB -> Color(0xFF34A853) // USB green
-        ControllerDetector.ConnectionType.UNKNOWN -> Color.Gray
+@Composable
+private fun FeatureChip(text: String, enabled: Boolean) {
+    Surface(
+        color = if (enabled) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(6.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (enabled) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (enabled) FontWeight.Medium else FontWeight.Normal
+        )
     }
 }

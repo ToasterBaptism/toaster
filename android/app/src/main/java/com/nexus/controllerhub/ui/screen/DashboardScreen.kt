@@ -30,7 +30,8 @@ fun DashboardScreen(
     onNavigateToMacros: () -> Unit,
     onNavigateToTroubleshooting: () -> Unit = {},
     onNavigateToDeviceSelection: () -> Unit = {},
-    onNavigateToLiveTest: () -> Unit = {}
+    onNavigateToLiveTest: () -> Unit = {},
+    onNavigateToButtonRemapping: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val database = ControllerDatabase.getDatabase(context)
@@ -277,6 +278,15 @@ fun DashboardScreen(
                     description = "Test controller input and remapping in real-time",
                     icon = Icons.Default.Visibility,
                     onClick = onNavigateToLiveTest
+                )
+            }
+            
+            item {
+                QuickActionCard(
+                    title = "Button Remapping",
+                    description = "Customize button mappings and create profiles",
+                    icon = Icons.Default.Tune,
+                    onClick = onNavigateToButtonRemapping
                 )
             }
             

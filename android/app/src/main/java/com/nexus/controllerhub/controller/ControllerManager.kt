@@ -29,6 +29,7 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     }
     
     private val inputManager = context.getSystemService(Context.INPUT_SERVICE) as InputManager
+    private val buttonRemappingManager = ButtonRemappingManager.getInstance(context)
     
     // Controller state
     private val _controllers = MutableStateFlow<List<Controller>>(emptyList())
@@ -59,6 +60,9 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     
     private val _inputEvents = MutableStateFlow<List<InputEvent>>(emptyList())
     val inputEvents: StateFlow<List<InputEvent>> = _inputEvents.asStateFlow()
+    
+    // Button remapping
+    val remappingManager: ButtonRemappingManager = buttonRemappingManager
     
     // Macro recording
     private val _isRecording = MutableStateFlow(false)
@@ -109,7 +113,12 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     init {
         inputManager.registerInputDeviceListener(this, null)
         scanControllers()
-        Log.d(TAG, "ControllerManager initialized")
+        Log.i(TAG, "ControllerManager initialized - found ${_controllers.value.size} controllers")
+        
+        // Log all detected controllers
+        _controllers.value.forEach { controller ->
+            Log.i(TAG, "Detected controller: ${controller.name} (ID: ${controller.deviceId}, Type: ${controller.type})")
+        }
     }
     
     private fun scanControllers() {
@@ -237,7 +246,35 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     fun startTestMode() {
         _isTestMode.value = true
         _inputEvents.value = emptyList()
-        Log.d(TAG, "Started test mode")
+        // Force refresh controllers when starting test mode
+        refreshControllers()
+        Log.d(TAG, "Started test mode, controllers refreshed")
+    }
+    
+    fun refreshControllers() {
+        Log.d(TAG, "Manually refreshing controllers...")
+        val deviceIds = InputDevice.getDeviceIds()
+        Log.d(TAG, "Found ${deviceIds.size} input devices")
+        
+        val newControllers = mutableListOf<Controller>()
+        for (deviceId in deviceIds) {
+            val device = InputDevice.getDevice(deviceId)
+            if (device != null && isController(device)) {
+                val controller = createController(device)
+                newControllers.add(controller)
+                Log.i(TAG, "Added controller: ${controller.name}")
+            }
+        }
+        
+        _controllers.value = newControllers
+        
+        // Set active controller if we have any and none is set
+        if (newControllers.isNotEmpty() && _activeController.value == null) {
+            _activeController.value = newControllers[0]
+            Log.i(TAG, "Set active controller: ${newControllers[0].name}")
+        }
+        
+        Log.i(TAG, "Controller refresh complete: ${newControllers.size} controllers found")
     }
     
     fun stopTestMode() {
@@ -259,10 +296,6 @@ class ControllerManager private constructor(private val context: Context) : Inpu
         return macro
     }
     
-    fun refreshControllers() {
-        scanControllers()
-    }
-    
     fun clearMacro() {
         _recordedMacro.value = emptyList()
         Log.d(TAG, "Cleared recorded macro")
@@ -275,29 +308,51 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     
     // Input processing
     fun handleKeyEvent(event: KeyEvent): Boolean {
-        val device = event.device ?: return false
-        if (!isController(device)) return false
+        Log.d(TAG, "handleKeyEvent called - keyCode: ${event.keyCode}, action: ${event.action}, device: ${event.device?.name}")
         
-        val buttonName = getButtonName(event.keyCode)
+        val device = event.device
+        if (device == null) {
+            Log.w(TAG, "Event device is null")
+            return false
+        }
+        
+        if (!isController(device)) {
+            Log.d(TAG, "Device ${device.name} is not recognized as a controller")
+            return false
+        }
+        
+        // Apply button remapping
+        val originalKeyCode = event.keyCode
+        val remappedKeyCode = buttonRemappingManager.remapKeyCode(originalKeyCode)
+        val originalButtonName = getButtonName(originalKeyCode)
+        val remappedButtonName = getButtonName(remappedKeyCode)
         val isPressed = event.action == KeyEvent.ACTION_DOWN
         
-        Log.d(TAG, "Key event: $buttonName ${if (isPressed) "DOWN" else "UP"}")
+        Log.i(TAG, "Controller input detected: $originalButtonName ${if (isPressed) "DOWN" else "UP"} from ${device.name}")
+        if (originalKeyCode != remappedKeyCode) {
+            Log.i(TAG, "Button remapped: $originalButtonName -> $remappedButtonName")
+        }
         
-        // Update button state
+        // Update button state using remapped button
         val currentStates = _buttonStates.value.toMutableMap()
-        currentStates[buttonName] = isPressed
+        currentStates[remappedButtonName] = isPressed
         _buttonStates.value = currentStates
         
         // Log event if in test mode
         if (_isTestMode.value) {
-            logInputEvent("BUTTON", "$buttonName ${if (isPressed) "PRESSED" else "RELEASED"}")
+            val logMessage = if (originalKeyCode != remappedKeyCode) {
+                "$originalButtonName->$remappedButtonName ${if (isPressed) "PRESSED" else "RELEASED"}"
+            } else {
+                "$remappedButtonName ${if (isPressed) "PRESSED" else "RELEASED"}"
+            }
+            logInputEvent("BUTTON", logMessage)
         }
         
-        // Record macro event
+        // Record macro event (use remapped button)
         if (_isRecording.value) {
             recordMacroEvent(
                 if (isPressed) EventType.BUTTON_DOWN else EventType.BUTTON_UP,
-                buttonName
+                remappedButtonName
             )
         }
         
@@ -305,8 +360,18 @@ class ControllerManager private constructor(private val context: Context) : Inpu
     }
     
     fun handleMotionEvent(event: MotionEvent): Boolean {
-        val device = event.device ?: return false
-        if (!isController(device)) return false
+        Log.d(TAG, "handleMotionEvent called - device: ${event.device?.name}")
+        
+        val device = event.device
+        if (device == null) {
+            Log.w(TAG, "Motion event device is null")
+            return false
+        }
+        
+        if (!isController(device)) {
+            Log.d(TAG, "Motion device ${device.name} is not recognized as a controller")
+            return false
+        }
         
         // Update stick positions
         val leftX = event.getAxisValue(MotionEvent.AXIS_X)

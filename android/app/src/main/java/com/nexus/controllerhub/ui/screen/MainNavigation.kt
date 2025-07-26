@@ -38,7 +38,8 @@ fun MainNavigation(
                 onNavigateToMacros = { navController.navigate("macros") },
                 onNavigateToTroubleshooting = { navController.navigate("troubleshooting") },
                 onNavigateToDeviceSelection = { navController.navigate("device_selection") },
-                onNavigateToLiveTest = { navController.navigate("live_test") }
+                onNavigateToLiveTest = { navController.navigate("live_test") },
+                onNavigateToButtonRemapping = { navController.navigate("button_remapping") }
             )
         }
         
@@ -92,6 +93,13 @@ fun MainNavigation(
         
         composable("live_test") {
             RealLiveTestScreen(
+                controllerManager = controllerManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable("button_remapping") {
+            ButtonRemappingScreen(
                 controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )

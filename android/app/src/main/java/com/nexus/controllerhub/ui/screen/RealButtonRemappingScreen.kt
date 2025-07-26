@@ -28,64 +28,32 @@ import android.view.KeyEvent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RealButtonRemappingScreen(
+    controllerManager: com.nexus.controllerhub.controller.ControllerManager,
     onNavigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
-    val inputManager = remember { RealControllerInputManager(context) }
-    
     // State management
-    val connectedControllers by inputManager.connectedControllers.collectAsState()
-    val buttonStates by inputManager.buttonStates.collectAsState()
+    val connectedControllers by controllerManager.controllers.collectAsState()
+    val activeController by controllerManager.activeController.collectAsState()
+    val inputEvents by controllerManager.inputEvents.collectAsState()
     
-    // Remapping state
-    var buttonMappings by remember { mutableStateOf(getDefaultButtonMappings()) }
-    var isRemappingMode by remember { mutableStateOf(false) }
-    var selectedButton by remember { mutableStateOf<ButtonMapping?>(null) }
-    var isWaitingForInput by remember { mutableStateOf(false) }
-    var lastPressedButton by remember { mutableStateOf<Int?>(null) }
+    // Start test mode to capture input
+    LaunchedEffect(Unit) {
+        controllerManager.startTestMode()
+    }
     
-    // Listen for button presses when in remapping mode
-    LaunchedEffect(buttonStates, isWaitingForInput) {
-        if (isWaitingForInput) {
-            val pressedButtons = buttonStates.filter { it.value }
-            if (pressedButtons.isNotEmpty()) {
-                val newKeyCode = pressedButtons.keys.first()
-                selectedButton?.let { mapping ->
-                    buttonMappings = buttonMappings.map { 
-                        if (it.originalButton == mapping.originalButton) {
-                            it.copy(mappedButton = newKeyCode, mappedButtonName = getKeyName(newKeyCode))
-                        } else it
-                    }
-                }
-                isWaitingForInput = false
-                selectedButton = null
-            }
+    DisposableEffect(Unit) {
+        onDispose {
+            controllerManager.stopTestMode()
         }
     }
     
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("🎮 Button Remapping") },
+                title = { Text("🎮 Controller Configuration") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { 
-                            isRemappingMode = !isRemappingMode
-                            if (!isRemappingMode) {
-                                isWaitingForInput = false
-                                selectedButton = null
-                            }
-                        }
-                    ) {
-                        Icon(
-                            if (isRemappingMode) Icons.Default.Save else Icons.Default.Edit,
-                            contentDescription = if (isRemappingMode) "Save" else "Edit"
-                        )
                     }
                 }
             )
@@ -99,48 +67,121 @@ fun RealButtonRemappingScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Controller Status
-            ControllerStatusCard(connectedControllers)
-            
-            // Instructions
-            InstructionsCard(isRemappingMode, isWaitingForInput)
-            
-            // Button Mappings List
-            ButtonMappingsCard(
-                buttonMappings = buttonMappings,
-                isRemappingMode = isRemappingMode,
-                buttonStates = buttonStates,
-                onRemapButton = { mapping ->
-                    selectedButton = mapping
-                    isWaitingForInput = true
-                },
-                onResetButton = { mapping ->
-                    buttonMappings = buttonMappings.map {
-                        if (it.originalButton == mapping.originalButton) {
-                            it.copy(
-                                mappedButton = it.originalButton,
-                                mappedButtonName = it.originalButtonName
-                            )
-                        } else it
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (activeController != null) 
+                        MaterialTheme.colorScheme.primaryContainer 
+                    else MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "🎮 Controller Status",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    activeController?.let { controller ->
+                        Text(
+                            text = "✅ Active: ${controller.name}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } ?: run {
+                        Text(
+                            text = "❌ No controller selected",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Please go to Device Selection to select a controller",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     }
                 }
-            )
+            }
             
-            // Current Input Display
-            if (isRemappingMode) {
-                CurrentInputCard(buttonStates)
+            // Input Events
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "🎯 Recent Input Events",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    if (inputEvents.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier.height(200.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(inputEvents.take(10)) { event ->
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(8.dp)
+                                    ) {
+                                        Text(
+                                            text = event.data,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = "${event.type} | ${event.timestamp}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "No input events detected. Try pressing buttons on your controller.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            
+            // Configuration placeholder
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "⚙️ Button Remapping",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Button remapping functionality will be available once input detection is working properly.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
-    }
-    
-    // Waiting for input dialog
-    if (isWaitingForInput && selectedButton != null) {
-        WaitingForInputDialog(
-            buttonName = selectedButton!!.originalButtonName,
-            onDismiss = {
-                isWaitingForInput = false
-                selectedButton = null
-            }
-        )
     }
 }
 

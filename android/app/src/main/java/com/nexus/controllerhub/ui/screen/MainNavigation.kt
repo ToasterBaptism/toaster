@@ -53,8 +53,8 @@ fun MainNavigation(
         
         composable("configuration/{profileId}") { backStackEntry ->
             val profileId = backStackEntry.arguments?.getString("profileId")?.toLongOrNull() ?: 0L
-            RealConfigurationScreen(
-                profileId = profileId,
+            SimpleConfigurationScreen(
+                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -83,19 +83,18 @@ fun MainNavigation(
             )
         }
         
-        // Temporarily disabled - needs ControllerManager conversion
-        /*
         composable("device_selection") {
             DeviceSelectionScreen(
+                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         
         composable("live_test") {
             RealLiveTestScreen(
+                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
-        */
     }
 }

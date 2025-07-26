@@ -1,6 +1,5 @@
 package com.nexus.controllerhub.ui.screen
 
-import com.nexus.controllerhub.core.ControllerInputSystem
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,7 +33,7 @@ fun RealLiveTestScreen(
     controllerManager: ControllerManager,
     onNavigateBack: () -> Unit
 ) {
-    // State management using ControllerManager
+    // State management using ControllerManager with error handling
     val connectedControllers by controllerManager.controllers.collectAsState()
     val activeController by controllerManager.activeController.collectAsState()
     val isRecording by controllerManager.isRecording.collectAsState()
@@ -78,7 +77,15 @@ fun RealLiveTestScreen(
             ControllerStatusSection(
                 connectedControllers = connectedControllers,
                 selectedController = activeController,
-                onSelectController = { controllerManager.selectController(it) }
+                onSelectController = { controllerManager.selectController(it) },
+                onRefreshControllers = { controllerManager.refreshControllers() }
+            )
+            
+            // Debug Section
+            DebugSection(
+                connectedControllers = connectedControllers,
+                activeController = activeController,
+                inputEvents = inputEvents
             )
             
             // Test Controls Section
@@ -99,7 +106,7 @@ fun RealLiveTestScreen(
                 // Live Controller Visualization
                 ProperControllerVisualization(
                     controllerManager = controllerManager,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxWidth()
                 )
                 
                 // Input Details (if enabled)
@@ -129,7 +136,8 @@ fun RealLiveTestScreen(
 private fun ControllerStatusSection(
     connectedControllers: List<ControllerManager.Controller>,
     selectedController: ControllerManager.Controller?,
-    onSelectController: (ControllerManager.Controller) -> Unit
+    onSelectController: (ControllerManager.Controller) -> Unit,
+    onRefreshControllers: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -144,11 +152,26 @@ private fun ControllerStatusSection(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = "🎮 Controller Status",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🎮 Controller Status",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Button(
+                    onClick = onRefreshControllers,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("🔄 Refresh")
+                }
+            }
             
             Spacer(modifier = Modifier.height(12.dp))
             
@@ -613,6 +636,59 @@ private fun NoControllerSelectedSection() {
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+private fun DebugSection(
+    connectedControllers: List<ControllerManager.Controller>,
+    activeController: ControllerManager.Controller?,
+    inputEvents: List<ControllerManager.InputEvent>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "🔍 Debug Information",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Controllers Found: ${connectedControllers.size}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace
+            )
+            
+            Text(
+                text = "Active Controller: ${activeController?.name ?: "None"}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace
+            )
+            
+            Text(
+                text = "Input Events: ${inputEvents.size}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace
+            )
+            
+            if (inputEvents.isNotEmpty()) {
+                Text(
+                    text = "Last Event: ${inputEvents.first().data}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

@@ -116,6 +116,9 @@ class ControllerAccessibilityService : AccessibilityService() {
         return true
     }
     
+    // Note: AccessibilityService doesn't have onGenericMotionEvent override
+    // Motion events are handled through the handleGenericMotionEvent method
+    
     fun handleGenericMotionEvent(event: MotionEvent): Boolean {
         if (!isControllerInput(event)) {
             return false

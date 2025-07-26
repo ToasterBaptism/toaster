@@ -29,7 +29,8 @@ fun DashboardScreen(
     onNavigateToConfiguration: (Long) -> Unit,
     onNavigateToMacros: () -> Unit,
     onNavigateToTroubleshooting: () -> Unit = {},
-    onNavigateToDeviceSelection: () -> Unit = {}
+    onNavigateToDeviceSelection: () -> Unit = {},
+    onNavigateToLiveTest: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val database = ControllerDatabase.getDatabase(context)
@@ -267,6 +268,15 @@ fun DashboardScreen(
                     description = "Select specific controller device to use",
                     icon = Icons.Default.Gamepad,
                     onClick = onNavigateToDeviceSelection
+                )
+            }
+            
+            item {
+                QuickActionCard(
+                    title = "Live Test Mode",
+                    description = "Test controller input and remapping in real-time",
+                    icon = Icons.Default.Visibility,
+                    onClick = onNavigateToLiveTest
                 )
             }
             

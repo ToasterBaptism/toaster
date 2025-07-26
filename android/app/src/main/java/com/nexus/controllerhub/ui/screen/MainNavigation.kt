@@ -8,8 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nexus.controllerhub.controller.ControllerManager
 
-
-
 @Composable
 fun MainNavigation(
     controllerManager: ControllerManager,
@@ -55,14 +53,15 @@ fun MainNavigation(
         
         composable("configuration/{profileId}") { backStackEntry ->
             val profileId = backStackEntry.arguments?.getString("profileId")?.toLongOrNull() ?: 0L
-            ConfigurationScreen(
+            RealConfigurationScreen(
                 profileId = profileId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         
         composable("macros") {
-            MacrosScreen(
+            WorkingMacrosScreen(
+                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToMacroEditor = { macroId ->
                     navController.navigate("macro_editor/$macroId")
@@ -84,18 +83,19 @@ fun MainNavigation(
             )
         }
         
+        // Temporarily disabled - needs ControllerManager conversion
+        /*
         composable("device_selection") {
             DeviceSelectionScreen(
-                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
         
         composable("live_test") {
             RealLiveTestScreen(
-                controllerManager = controllerManager,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+        */
     }
 }

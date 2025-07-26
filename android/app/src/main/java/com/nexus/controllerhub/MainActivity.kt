@@ -60,19 +60,24 @@ class MainActivity : ComponentActivity() {
     
     override fun onResume() {
         super.onResume()
-        // Re-enable test mode when app comes to foreground
+        // Controllers are automatically refreshed by the controller manager
         controllerManager.startTestMode()
     }
     
     override fun onPause() {
         super.onPause()
-        // Disable test mode when app goes to background
-        controllerManager.stopTestMode()
+        // Stop any ongoing macro recording when app goes to background
+        if (controllerManager.isRecording.value) {
+            controllerManager.stopMacroRecording()
+        }
     }
     
     override fun onDestroy() {
         super.onDestroy()
         // Clean up controller manager if needed
+        if (controllerManager.isRecording.value) {
+            controllerManager.stopMacroRecording()
+        }
         controllerManager.stopTestMode()
     }
 }

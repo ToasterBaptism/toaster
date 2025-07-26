@@ -1,0 +1,491 @@
+package com.nexus.controllerhub.ui.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.GamepadOff
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nexus.controllerhub.core.ControllerInputSystem
+import com.nexus.controllerhub.ui.component.ProperControllerVisualization
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RealConfigurationScreen(
+    profileId: Long,
+    onNavigateBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val inputSystem = ControllerInputSystem.getInstance(context)
+    
+    // Collect real-time state from ControllerInputSystem
+    val connectedControllers by inputSystem.connectedControllers.collectAsState()
+    val activeController by inputSystem.activeController.collectAsState()
+    val buttonStates by inputSystem.buttonStates.collectAsState()
+    val analogStates by inputSystem.analogStates.collectAsState()
+    
+    var selectedTab by remember { mutableStateOf(0) }
+    var remappingMode by remember { mutableStateOf(false) }
+    var selectedButton by remember { mutableStateOf<String?>(null) }
+    
+    val tabs = listOf("Button Mapping", "Stick Calibration", "Trigger Settings", "Live Test")
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Controller Configuration") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { inputSystem.refreshControllers() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            // Controller Status
+            ControllerStatusCard(
+                connectedControllers = connectedControllers,
+                activeController = activeController,
+                onSelectController = { inputSystem.selectController(it) }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Tab Row
+            TabRow(selectedTabIndex = selectedTab) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Tab Content
+            when (selectedTab) {
+                0 -> ButtonMappingTab(
+                    activeController = activeController,
+                    buttonStates = buttonStates,
+                    analogStates = analogStates,
+                    remappingMode = remappingMode,
+                    selectedButton = selectedButton,
+                    onToggleRemappingMode = { remappingMode = !remappingMode },
+                    onButtonSelected = { selectedButton = it }
+                )
+                1 -> StickCalibrationTab(
+                    activeController = activeController,
+                    analogStates = analogStates
+                )
+                2 -> TriggerSettingsTab(
+                    activeController = activeController,
+                    analogStates = analogStates
+                )
+                3 -> LiveTestTab(
+                    activeController = activeController,
+                    buttonStates = buttonStates,
+                    analogStates = analogStates
+                )
+        }
+    }
+}
+
+// Controller Status Card (reused from other screens)
+@Composable
+private fun ControllerStatusCard(
+    connectedControllers: List<ControllerInputSystem.DetectedController>,
+    activeController: ControllerInputSystem.DetectedController?,
+    onSelectController: (ControllerInputSystem.DetectedController) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = when {
+                activeController != null -> Color(0xFF4CAF50).copy(alpha = 0.1f)
+                connectedControllers.isNotEmpty() -> Color(0xFFFF9800).copy(alpha = 0.1f)
+                else -> Color(0xFFF44336).copy(alpha = 0.1f)
+            }
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Gamepad,
+                    contentDescription = null,
+                    tint = when {
+                        activeController != null -> Color(0xFF4CAF50)
+                        connectedControllers.isNotEmpty() -> Color(0xFFFF9800)
+                        else -> Color(0xFFF44336)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = when {
+                        activeController != null -> "Controller Active: ${activeController.name}"
+                        connectedControllers.isNotEmpty() -> "${connectedControllers.size} Controller(s) Connected"
+                        else -> "No Controllers Connected"
+                    },
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            if (connectedControllers.size > 1) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Select Controller:", fontSize = 12.sp)
+                connectedControllers.forEach { controller ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectController(controller) }
+                            .padding(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = controller == activeController,
+                            onClick = { onSelectController(controller) }
+                        )
+                        Text("${controller.name} (ID: ${controller.deviceId})")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ButtonMappingTab(
+    activeController: ControllerInputSystem.DetectedController?,
+    buttonStates: Map<String, Boolean>,
+    analogStates: Map<String, Float>,
+    remappingMode: Boolean,
+    selectedButton: String?,
+    onToggleRemappingMode: () -> Unit,
+    onButtonSelected: (String) -> Unit
+) {
+    Column {
+        if (activeController != null) {
+            // Remapping Controls
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Button Remapping",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = onToggleRemappingMode,
+                            colors = if (remappingMode) 
+                                ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                            else 
+                                ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        ) {
+                            Text(if (remappingMode) "Exit Remapping" else "Start Remapping")
+                        }
+                        
+                        if (selectedButton != null) {
+                            Button(
+                                onClick = { onButtonSelected("") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFF9800)
+                                )
+                            ) {
+                                Text("Clear Selection")
+                            }
+                        }
+                    }
+                    
+                    if (remappingMode) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "🎯 Remapping Mode Active: Press controller buttons to select them for remapping",
+                            color = Color(0xFF4CAF50),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    if (selectedButton != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Selected: $selectedButton - Choose target action below",
+                            color = Color(0xFF2196F3),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Live Controller Visualization
+            ProperControllerVisualization(
+                controller = activeController,
+                buttonStates = buttonStates,
+                analogStates = analogStates,
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            NoControllerMessage()
+        }
+    }
+}
+
+@Composable
+private fun StickCalibrationTab(
+    activeController: ControllerInputSystem.DetectedController?,
+    analogStates: Map<String, Float>
+) {
+    Column {
+        Text(
+            "Analog Stick Calibration",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (activeController != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Live Stick Values",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Left Stick
+                    Text("Left Stick:", fontWeight = FontWeight.Bold)
+                    Text("X: ${analogStates["AXIS_X"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    Text("Y: ${analogStates["AXIS_Y"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Right Stick
+                    Text("Right Stick:", fontWeight = FontWeight.Bold)
+                    Text("X: ${analogStates["AXIS_Z"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    Text("Y: ${analogStates["AXIS_RZ"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text(
+                        "Move your analog sticks to see live values above",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            NoControllerMessage()
+        }
+    }
+}
+
+@Composable
+private fun TriggerSettingsTab(
+    activeController: ControllerInputSystem.DetectedController?,
+    analogStates: Map<String, Float>
+) {
+    Column {
+        Text(
+            "Trigger Settings",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (activeController != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Live Trigger Values",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Left Trigger
+                    Text("Left Trigger (L2):", fontWeight = FontWeight.Bold)
+                    Text("Value: ${analogStates["AXIS_LTRIGGER"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Right Trigger
+                    Text("Right Trigger (R2):", fontWeight = FontWeight.Bold)
+                    Text("Value: ${analogStates["AXIS_RTRIGGER"]?.let { "%.3f".format(it) } ?: "0.000"}")
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text(
+                        "Press your triggers to see live values above",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            NoControllerMessage()
+        }
+    }
+}
+
+@Composable
+private fun LiveTestTab(
+    activeController: ControllerInputSystem.DetectedController?,
+    buttonStates: Map<String, Boolean>,
+    analogStates: Map<String, Float>
+) {
+    Column {
+        Text(
+            "Live Controller Test",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (activeController != null) {
+            // Note: This function is deprecated - use EnhancedConfigurationScreen instead
+            Text(
+                "This tab is deprecated. Please use the enhanced configuration screen.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Active Buttons Display
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Active Inputs",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    val activeButtons = buttonStates.filter { it.value }
+                    val activeAnalogs = analogStates.filter { it.value != 0f }
+                    
+                    if (activeButtons.isNotEmpty() || activeAnalogs.isNotEmpty()) {
+                        activeButtons.forEach { (button, _) ->
+                            Text(
+                                "🔘 $button",
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        activeAnalogs.forEach { (axis, value) ->
+                            Text(
+                                "📊 $axis: ${"%.3f".format(value)}",
+                                color = Color(0xFF2196F3),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
+                        Text(
+                            "No inputs active - press buttons or move sticks",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        } else {
+            NoControllerMessage()
+        }
+    }
+}
+
+@Composable
+private fun NoControllerMessage() {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.GamepadOff,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "No Controller Selected",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                "Connect a controller to configure it",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
